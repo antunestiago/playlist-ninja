@@ -97,7 +97,7 @@ def test_delete_author(client):
     assert response.status_code == 200
 
 @pytest.mark.django_db
-def test_delete_author(client):
+def test_delete_author_not_found(client):
     url = reverse("api-1.0.0:delete_author", kwargs={"author_id": 999})
 
     response = client.delete(url, content_type="application/json")

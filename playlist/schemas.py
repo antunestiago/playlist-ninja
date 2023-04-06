@@ -13,14 +13,12 @@ class AuthorOut(Schema):
 
 class AlbumIn(Schema):
     title: str
-    release_year: Optional[int]
     author_id: int
 
 
 class AlbumOut(Schema):
     id: int
     title: str
-    release_year: Optional[int]
     author: AuthorOut
 
 
