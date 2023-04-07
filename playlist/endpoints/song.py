@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 from playlist.models import Song
 from playlist.schemas import SongIn, SongOut, SongListOut
+from django.db.models import Q
 
 router = Router(tags=["Songs"])
 
@@ -12,9 +13,23 @@ def create_song(request, song: SongIn):
     return song_obj
 
 
-@router.get("/albums/", response=SongListOut)
-def list_songs(request):
-    songs = Song.objects.all()
+@router.get("/songs/", response=SongListOut)
+def list_songs(request, title: str = None, album: str = None, author: str = None):
+    query = Q()
+
+    if title:
+        query &= Q(title__icontains=title)
+
+    if album:
+        query &= Q(album__title__icontains=album)
+
+    if author:
+        query &= Q(author__name__icontains=author)
+
+    songs = Song.objects.filter(query)
+
+    songs = songs.prefetch_related('album', 'author')
+
     song_outs = [SongOut.from_orm(song) for song in songs]
     return {"items": song_outs, "count": songs.count()}
 

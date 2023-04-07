@@ -81,6 +81,18 @@ def test_list_songs(client, populate_db):
 
 
 @pytest.mark.django_db
+def test_list_songs_by_title(client, populate_db):
+    url = reverse("api-1.0.0:list_songs")
+
+    response = client.get(url, {'title': 'a'})
+
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data['count'] == 10
+
+
+@pytest.mark.django_db
 def test_get_song(client):
     author = Author.objects.create(name="John Doe")
     album = Album.objects.create(title="Album One", author=author)
