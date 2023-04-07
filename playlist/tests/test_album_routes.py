@@ -124,6 +124,7 @@ def test_update_album_not_found(client):
 
     assert response.status_code == 404
 
+
 @pytest.mark.django_db
 def test_delete_album(client):
     author = Author.objects.create(name="John Doe")
@@ -134,6 +135,7 @@ def test_delete_album(client):
     response = client.delete(url, content_type="application/json")
 
     assert response.status_code == 200
+
 
 @pytest.mark.django_db
 def test_delete_album_not_found(client):

@@ -1,5 +1,3 @@
-from typing import List
-
 from django.shortcuts import get_object_or_404
 from ninja import Router
 from playlist.models import Album, Author
@@ -20,13 +18,13 @@ def list_albums(request):
     album_outs = [AlbumOut.from_orm(album) for album in albums]
     return {"items": album_outs, "count": albums.count()}
 
-#
+
 @router.get("/{album_id}", response=AlbumOut)
 def get_album(request, album_id: int):
     album = get_object_or_404(Album, id=album_id)
     return album
-#
-#
+
+
 @router.put("/{album_id}", response=AlbumOut)
 def update_album(request, album_id: int, payload: AlbumIn):
     album = get_object_or_404(Album, id=album_id)
@@ -40,4 +38,4 @@ def update_album(request, album_id: int, payload: AlbumIn):
 def delete_album(request, album_id: int):
     album = get_object_or_404(Author, id=album_id)
     album.delete()
-    return {"message": f"Author with id {album_id} deleted successfully."}
+    return {"message": f"Album with id {album_id} deleted successfully."}

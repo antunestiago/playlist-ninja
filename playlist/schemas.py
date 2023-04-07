@@ -23,16 +23,18 @@ class AlbumOut(Schema):
 
 
 class SongIn(Schema):
-    name: str
+    title: str
     duration: int
     album_id: int
+    author_id: int
 
 
 class SongOut(Schema):
     id: int
-    name: str
+    title: str
     duration: int
     album: AlbumOut
+    author: AuthorOut
 
 
 class AlbumListOut(Schema):
