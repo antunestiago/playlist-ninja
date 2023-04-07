@@ -5,6 +5,9 @@ from playlist.schemas import SongIn, SongOut, SongListOut, SongStateUpdate
 from django.db.models import Q
 from playlist.redis import RedisClient
 from playlist.utils.enums import MusicState
+from playlist_ninja.celery import song_complete
+from datetime import datetime, timedelta
+
 
 router = Router(tags=["Songs"])
 
@@ -37,6 +40,10 @@ def list_songs(request, title: str = None, album: str = None, author: str = None
     songs = songs.prefetch_related('album', 'author')
 
     song_outs = [SongOut.from_orm(song) for song in songs]
+
+    r = RedisClient()
+    r.show_all_values()
+
     return {"items": song_outs, "count": songs.count()}
 
 
@@ -61,14 +68,16 @@ def delete_song(request, song_id: int):
     song.delete()
     return {"message": f"Song with id {song_id} deleted successfully."}
 
+
 @router.put("/song/{song_id}/state")
 def set_song_state(request, song_id: int, body: SongStateUpdate):
 
     song = get_object_or_404(Song, id=song_id)
     state = body.state.value
 
-    # Set the state in Redis
     redis_client = RedisClient()
     redis_client.set_music_state(str(song.id), state)
+
+    song_complete.apply_async(args=[song_id], eta=datetime.utcnow() + timedelta(seconds=song.duration))
 
     return {"message": f"Song {song_id} state set to {state} in Redis"}

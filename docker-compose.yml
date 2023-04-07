@@ -1,9 +1,34 @@
 version: '3.4'
 
 services:
+  django:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery
+
   redis:
     image: "redis:7-alpine"
     ports:
       - 6379:6379
     volumes:
       - ./tmp/redis_data:/var/lib/redis/data
+
+  celery:
+    build: .
+    command: celery -A playlist_ninja worker -l info
+    depends_on:
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=playlist_ninja.settings
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
