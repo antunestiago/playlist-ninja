@@ -1,8 +1,10 @@
 from django.shortcuts import get_object_or_404
 from ninja import Router
 from playlist.models import Song
-from playlist.schemas import SongIn, SongOut, SongListOut
+from playlist.schemas import SongIn, SongOut, SongListOut, SongStateUpdate
 from django.db.models import Q
+from playlist.redis import RedisClient
+from playlist.utils.enums import MusicState
 
 router = Router(tags=["Songs"])
 
@@ -10,6 +12,10 @@ router = Router(tags=["Songs"])
 @router.post("/", response={201: SongOut})
 def create_song(request, song: SongIn):
     song_obj = Song.objects.create(**song.dict())
+
+    r = RedisClient()
+    r.set_music_state(song_obj.id, MusicState.IDLE.value)
+
     return song_obj
 
 
@@ -54,3 +60,15 @@ def delete_song(request, song_id: int):
     song = get_object_or_404(Song, id=song_id)
     song.delete()
     return {"message": f"Song with id {song_id} deleted successfully."}
+
+@router.put("/song/{song_id}/state")
+def set_song_state(request, song_id: int, body: SongStateUpdate):
+
+    song = get_object_or_404(Song, id=song_id)
+    state = body.state.value
+
+    # Set the state in Redis
+    redis_client = RedisClient()
+    redis_client.set_music_state(str(song.id), state)
+
+    return {"message": f"Song {song_id} state set to {state} in Redis"}

@@ -1,7 +1,8 @@
 import json
 from django.urls import reverse
 import pytest
-
+from unittest import mock
+from playlist.utils.enums import MusicState
 from playlist.models import Song, Author, Album
 
 
@@ -59,13 +60,20 @@ def test_create_song(client):
         "album_id": album.id
     }
 
-    response = client.post(url, json.dumps(payload), content_type="application/json")
+    with mock.patch('playlist.endpoints.song.RedisClient') as mock_redis:
+        mock_redis_instance = mock_redis.return_value
+        mock_redis_instance.set_music_state.return_value = None
 
-    response_data = response.json()
-    assert response.status_code == 201
-    assert response_data["title"] == payload["title"]
-    assert response_data["author"]['id'] == author.id
-    assert response_data["album"]['id'] == author.id
+        response = client.post(url, json.dumps(payload), content_type="application/json")
+
+        response_data = response.json()
+        assert response.status_code == 201
+        assert response_data["title"] == payload["title"]
+        assert response_data["author"]['id'] == author.id
+        assert response_data["album"]['id'] == author.id
+
+        # Check that the RedisClient was called with the correct arguments
+        mock_redis_instance.set_music_state.assert_called_once_with(response_data['id'], MusicState.IDLE.value)
 
 
 @pytest.mark.django_db

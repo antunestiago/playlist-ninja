@@ -1,6 +1,8 @@
 from typing import List, Optional
 from ninja import Schema
 
+from playlist.utils.enums import MusicState
+
 
 class AuthorIn(Schema):
     name: str
@@ -45,3 +47,7 @@ class AlbumListOut(Schema):
 class SongListOut(Schema):
     items: List[SongOut]
     count: int
+
+
+class SongStateUpdate(Schema):
+    state: MusicState
