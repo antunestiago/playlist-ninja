@@ -1,6 +1,6 @@
-from asgiref.sync import async_to_sync
+# from asgiref.sync import async_to_sync
 from celery import shared_task
-from channels.layers import get_channel_layer
+# from channels.layers import get_channel_layer
 import os
 from celery import Celery
 from playlist.redis import RedisClient
@@ -20,12 +20,12 @@ def song_complete(song_id):
     redis_client.set_music_state(str(song_id), MusicState.IDLE.value)
 
     # Send a WebSocket message to all clients
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "music_updates",
-        {
-            "type": "music_update",
-            "message": f"Song {song_id} has completed",
-        },
-    )
+    # channel_layer = get_channel_layer()
+    # async_to_sync(channel_layer.group_send)(
+    #     "music_updates",
+    #     {
+    #         "type": "music_update",
+    #         "message": f"Song {song_id} has completed",
+    #     },
+    # )
 
